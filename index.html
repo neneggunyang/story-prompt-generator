@@ -62,6 +62,7 @@ button:active{transform:scale(.98)}
 <div class="card"><h2>분위기 키워드</h2><textarea id="mood" placeholder="예: 서늘함&#10;달콤쌉싸름함&#10;느린 구원"></textarea></div>
 <div class="card"><h2>장르 키워드</h2><textarea id="genre" placeholder="예: 미스터리&#10;스릴러&#10;로맨틱 코미디"></textarea></div>
 <div class="card"><h2>소재 키워드</h2><textarea id="material" placeholder="예: 비밀&#10;재회&#10;계약 연애&#10;질투"></textarea></div>
+<div class="card"><h2>기타 키워드</h2><textarea id="other" placeholder="예: 문신&#10;고양이&#10;우산&#10;겨울"></textarea></div>
 </div>
 
 <div class="actions">
@@ -74,7 +75,7 @@ button:active{transform:scale(.98)}
 <div class="result-head"><h2>오늘의 조합</h2><button id="copy" type="button">📋 조합 복사</button></div>
 <div id="output">키워드를 입력하고 버튼을 눌러보세요.</div>
 <div id="chips" class="chips"></div>
-<div class="small">비워둔 카테고리는 이번 조합에서 제외됩니다.</div>
+<div class="small">비워둔 카테고리는 제외하고, 선택된 키워드만 / 로 연결해 보여줍니다.</div>
 </div>
 
 <div class="storage">키워드는 이 브라우저에만 저장됩니다 · 친구와 공유해도 각자의 키워드는 따로 관리돼요.</div>
@@ -82,8 +83,8 @@ button:active{transform:scale(.98)}
 </div>
 
 <script>
-const ids=["gong","su","background","world","mood","genre","material"];
-const labels={gong:"공",su:"수",background:"배경",world:"세계관",mood:"분위기",genre:"장르",material:"소재"};
+const ids=["gong","su","background","world","mood","genre","material","other"];
+const labels={gong:"공",su:"수",background:"배경",world:"세계관",mood:"분위기",genre:"장르",material:"소재",other:"기타"};
 const KEY="storyPromptRandomizer_v2";
 
 function items(id){
@@ -110,20 +111,15 @@ document.getElementById("draw").onclick=()=>{
  const chosen=[];
  ids.forEach(id=>{const a=items(id);if(a.length)chosen.push([id,pick(a)])});
  if(!chosen.length){
-  document.getElementById("output").textContent="키워드를 하나 이상 입력해주세요.";
-  document.getElementById("chips").innerHTML="";return;
+  document.getElementById("output").textContent="키워드를 입력하고 버튼을 눌러보세요.";
+  document.getElementById("chips").innerHTML="";
+  return;
  }
- const order=["gong","su","background","world","mood","genre","material"];
- const names={gong:"공",su:"수",background:"배경은",world:"세계관은",mood:"분위기는",genre:"장르는",material:"소재는"};
- let text="";
+ const order=["gong","su","background","world","mood","genre","material","other"];
  chosen.sort((a,b)=>order.indexOf(a[0])-order.indexOf(b[0]));
- chosen.forEach(([id,val],i)=>{
-   if(i===0) text += `${names[id]} ${val}`;
-   else text += ` · ${names[id]} ${val}`;
- });
- document.getElementById("output").textContent=text;
- document.getElementById("chips").innerHTML=chosen.map(([id,val])=>
-  `<span class="chip">${labels[id]} · ${escapeHtml(val)}</span>`).join("");
+ const result=chosen.map(([,val])=>val).join(" / ");
+ document.getElementById("output").textContent=result;
+ document.getElementById("chips").innerHTML="";
 };
 
 document.getElementById("clear").onclick=()=>{
