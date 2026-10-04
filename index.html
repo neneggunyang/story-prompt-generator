@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>글감 랜덤 조합기</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap');
+*{box-sizing:border-box}
+:root{--ink:#29232d;--muted:#756b79;--line:#e7dfea;--paper:#fff;--lav:#7657df;--pink:#d96b93}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 10% 0%,#eee8ff 0,transparent 34%),radial-gradient(circle at 100% 20%,#ffeaf3 0,transparent 30%),#f8f6fa;color:var(--ink);font-family:"Gowun Dodum",system-ui,sans-serif}
+.wrap{max-width:1020px;margin:auto;padding:42px 18px 64px}
+.hero{text-align:center;margin-bottom:28px}
+.logo{font-size:13px;letter-spacing:.16em;color:var(--lav);font-weight:700}
+h1{font-family:"Jua",sans-serif;font-size:38px;margin:8px 0 7px;letter-spacing:-.03em}
+.sub{color:var(--muted);font-size:14px}
+.section-title{font-family:"Jua",sans-serif;font-size:19px;margin:27px 0 11px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}
+.card{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 8px 25px #4c385b0b;backdrop-filter:blur(8px)}
+.card h2{font-size:15px;margin:0 0 10px;font-weight:700}
+.person{border-top:4px solid var(--lav)}.person.su{border-top-color:var(--pink)}
+textarea{width:100%;height:96px;border:1px solid #ded5e2;border-radius:12px;padding:11px;background:#fcfbfd;resize:vertical;font:inherit;line-height:1.55;outline:none}
+textarea:focus{border-color:#a28ce8;box-shadow:0 0 0 3px #7657df15}
+.hint{font-size:11px;color:#988e9d;margin-top:6px}
+.actions{display:flex;gap:9px;margin:21px 0 8px}
+button{border:0;border-radius:12px;padding:13px 17px;font:inherit;font-weight:700;cursor:pointer;transition:.15s transform,.15s opacity}
+button:active{transform:scale(.98)}
+#draw{background:linear-gradient(135deg,#7657df,#9a73eb);color:#fff;flex:1;box-shadow:0 8px 18px #7657df25}
+#clear{background:#eae5ed;color:#514856}
+.save-note{text-align:center;font-size:12px;color:#817786;margin:10px 0 17px}
+.result{background:linear-gradient(145deg,#29232f,#3b3044);color:#fff;border-radius:22px;padding:23px;min-height:205px;box-shadow:0 14px 35px #392d461c}
+.result-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}
+.result h2{font-family:"Jua",sans-serif;color:#ded3ff;margin:0;font-size:16px}
+#copy{padding:8px 11px;background:#ffffff14;color:#eee;border:1px solid #ffffff20;font-size:12px}
+#copy.copied{background:#ffffff25}
+#output{font-size:21px;line-height:1.7;letter-spacing:-.02em;min-height:72px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
+.chip{background:#ffffff12;border:1px solid #ffffff1f;border-radius:999px;padding:5px 9px;font-size:11px;color:#eee}
+.small{font-size:11px;color:#b5aaba;margin-top:14px}
+.storage{margin-top:15px;text-align:center;font-size:11px;color:#8b808f}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#29232f;color:white;padding:10px 15px;border-radius:999px;font-size:12px;opacity:0;pointer-events:none;transition:.2s;box-shadow:0 8px 25px #0003}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:650px){.wrap{padding:30px 14px 45px}h1{font-size:32px}.grid{grid-template-columns:1fr}.result{padding:19px}.result-head{align-items:flex-start}#output{font-size:19px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="logo">STORY PROMPT GENERATOR</div>
+<h1>✦ 글감 랜덤 조합기</h1>
+<div class="sub">키워드를 모아두고, 오늘의 이야기를 한 번 뽑아보세요.</div>
+
+<h2 class="section-title">인물</h2>
+<div class="grid">
+<div class="card person"><h2>공</h2><textarea id="gong" placeholder="예: 무뚝뚝한 형사&#10;다정한 연하공&#10;비밀 많은 교수"></textarea><div class="hint">한 줄에 하나씩 입력 · 자동 저장</div></div>
+<div class="card person su"><h2>수</h2><textarea id="su" placeholder="예: 까칠한 편집자&#10;도망친 상속인&#10;무심한 바리스타"></textarea><div class="hint">한 줄에 하나씩 입력 · 자동 저장</div></div>
+</div>
+
+<h2 class="section-title">글감 키워드</h2>
+<div class="grid">
+<div class="card"><h2>배경 키워드</h2><textarea id="background" placeholder="예: 심야 PC방&#10;시골 별장&#10;장마철 서울"></textarea></div>
+<div class="card"><h2>세계관 키워드</h2><textarea id="world" placeholder="예: 오메가버스&#10;초능력자 사회&#10;근미래 디스토피아"></textarea></div>
+<div class="card"><h2>분위기 키워드</h2><textarea id="mood" placeholder="예: 서늘함&#10;달콤쌉싸름함&#10;느린 구원"></textarea></div>
+<div class="card"><h2>장르 키워드</h2><textarea id="genre" placeholder="예: 미스터리&#10;스릴러&#10;로맨틱 코미디"></textarea></div>
+<div class="card"><h2>소재 키워드</h2><textarea id="material" placeholder="예: 비밀&#10;재회&#10;계약 연애&#10;질투"></textarea></div>
+</div>
+
+<div class="actions">
+<button id="draw">🎲 랜덤으로 조합하기</button>
+<button id="clear">전체 초기화</button>
+</div>
+<div class="save-note">💾 키워드는 이 브라우저에 자동 저장돼요. 다음에 다시 열어도 그대로 남아 있습니다.</div>
+
+<div class="result">
+<div class="result-head"><h2>오늘의 조합</h2><button id="copy" type="button">📋 조합 복사</button></div>
+<div id="output">키워드를 입력하고 버튼을 눌러보세요.</div>
+<div id="chips" class="chips"></div>
+<div class="small">비워둔 카테고리는 이번 조합에서 제외됩니다.</div>
+</div>
+
+<div class="storage">키워드는 이 브라우저에만 저장됩니다 · 친구와 공유해도 각자의 키워드는 따로 관리돼요.</div>
+<div id="toast" class="toast">조합을 클립보드에 복사했어요!</div>
+</div>
+
+<script>
+const ids=["gong","su","background","world","mood","genre","material"];
+const labels={gong:"공",su:"수",background:"배경",world:"세계관",mood:"분위기",genre:"장르",material:"소재"};
+const KEY="storyPromptRandomizer_v2";
+
+function items(id){
+ return document.getElementById(id).value.split(/\n|,/).map(x=>x.trim()).filter(Boolean);
+}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function escapeHtml(s){
+ return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+}
+function save(){
+ const data={}; ids.forEach(id=>data[id]=document.getElementById(id).value);
+ localStorage.setItem(KEY,JSON.stringify(data));
+}
+function load(){
+ try{
+  const data=JSON.parse(localStorage.getItem(KEY)||"{}");
+  ids.forEach(id=>{if(data[id]!==undefined) document.getElementById(id).value=data[id]});
+ }catch(e){}
+}
+ids.forEach(id=>document.getElementById(id).addEventListener("input",save));
+load();
+
+document.getElementById("draw").onclick=()=>{
+ const chosen=[];
+ ids.forEach(id=>{const a=items(id);if(a.length)chosen.push([id,pick(a)])});
+ if(!chosen.length){
+  document.getElementById("output").textContent="키워드를 하나 이상 입력해주세요.";
+  document.getElementById("chips").innerHTML="";return;
+ }
+ const order=["gong","su","background","world","mood","genre","material"];
+ const names={gong:"공",su:"수",background:"배경은",world:"세계관은",mood:"분위기는",genre:"장르는",material:"소재는"};
+ let text="";
+ chosen.sort((a,b)=>order.indexOf(a[0])-order.indexOf(b[0]));
+ chosen.forEach(([id,val],i)=>{
+   if(i===0) text += `${names[id]} ${val}`;
+   else text += ` · ${names[id]} ${val}`;
+ });
+ document.getElementById("output").textContent=text;
+ document.getElementById("chips").innerHTML=chosen.map(([id,val])=>
+  `<span class="chip">${labels[id]} · ${escapeHtml(val)}</span>`).join("");
+};
+
+document.getElementById("clear").onclick=()=>{
+ if(!confirm("저장된 모든 키워드를 삭제할까요?")) return;
+ ids.forEach(id=>document.getElementById(id).value="");
+ localStorage.removeItem(KEY);
+ document.getElementById("output").textContent="키워드를 입력하고 버튼을 눌러보세요.";
+ document.getElementById("chips").innerHTML="";
+};
+
+document.getElementById("copy").onclick=async()=>{
+ const text=document.getElementById("output").textContent.trim();
+ if(!text || text==="키워드를 입력하고 버튼을 눌러보세요.") return;
+ try{
+   await navigator.clipboard.writeText(text);
+ }catch(e){
+   const ta=document.createElement("textarea");
+   ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();
+ }
+ const btn=document.getElementById("copy");
+ btn.textContent="✓ 복사 완료";btn.classList.add("copied");
+ const toast=document.getElementById("toast");toast.classList.add("show");
+ setTimeout(()=>{btn.textContent="📋 조합 복사";btn.classList.remove("copied");toast.classList.remove("show")},1400);
+};
+</script>
+</body>
+</html>
